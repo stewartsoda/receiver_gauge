@@ -1,0 +1,50 @@
+
+drawPage()
+    This method draws all the gauges on the page
+    Reads the page config table
+    Calls drawGauge() for each gauge
+    If printFPS
+        it prints the FPS in little text in the bottom left corner
+    Exits
+
+drawGauge()
+    This method draws an individual gauge
+    Takes a pointer to a gaugeConfig
+    if pageNeedsSetup flag is set
+        it sets up the gauge, drawing on the screen
+        it blanks the gauge area
+        it draws the outline boxes of the gauge bar
+            it draws a white outline box from limits[0] to limits[1]
+            it draws a red outline box from limits[1] to limits[2]
+            it draws a black fill box from limits[0] to limits[2]
+            gauge bar should look like this:
+                white   |   red
+                ---------------
+                ---------------
+        it draws the gauge label
+        it draws the gauge limits
+    it blanks the gaugeCanvas
+    it draws a fill box from limits[0] to value on the gaugeCanvas
+    it draws value in the digitsCanvas
+    if value >= limits[1]
+        drawColor is red
+    else
+        drawColor is white
+    it pastes the gaugeCanvas
+    it pastes the digitsCanvas
+    Exits
+
+How to hold the page layout?
+    
+    
+
+
+gaugeConfig
+    Needs to hold data about
+    byte[2] origin - Origin (upper left) coordinate: origin[0] = x,  origin[1] = y
+    byte[2] dimensions - Dimensions of the gauge: dimensions[0] = width, dimensions[1] = height
+    bool vert - is the gauge vertical, or horizontal
+    char[] label - label of gauge
+    int[3] limits - limits of gauge: limits[0] = min, limits[1] = warn, limits[2] = max
+    int value - current value of gauge
+
