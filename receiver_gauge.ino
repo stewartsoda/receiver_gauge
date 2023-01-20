@@ -10,10 +10,27 @@
 
 #include <Adafruit_GFX.h>
 
+struct gaugeConfig{
+  uint originX,originY;
+  uint height,width;
+  uint gfxHeight,gfxWidth;
+  bool isVert;
+  bool needsSetup;
+  char[] label;
+  int min,warn,max;
+  int value;
+}
+
 PDQ_ST7735 tft;			// PDQ: create LCD object (using pins in "PDQ_ST7735_config.h")
 
+// canvas for drawing the gauge
 GFXcanvas1 canvas(128,64);
 
+GFXcanvas1 small_horiz_canvas(smallGaugeWidth-(2*padding)-2,meterWidth-2);
+GFXcanvas1 small_vert_canvas(meterWidth-2,smallGaugeHeight-(2*padding)-2);
+GFXcanvas1 wide_gauge_canvas(wideGaugeWidth - (2*padding),meterwidth-2);
+
+// lookup table for fast sin/cos calculations
 static const uint8_t isinTable8[] = { 
   0, 4, 9, 13, 18, 22, 27, 31, 35, 40, 44, 
   49, 53, 57, 62, 66, 70, 75, 79, 83, 87, 
@@ -29,18 +46,28 @@ static const uint8_t isinTable8[] = {
 long startTime;
 long endTime;
 
+long lastDraw;
+long thisDraw;
+
+const int padding = 5;
+const int meterWidth = 8;
+const int smallGaugeWidth = 64;
+const int smallGaugeHeight = 60;
+const int wideGaugeWidth = 128;
+const int wideGaugeHeight = 40;
+
 void setup(void) {
   Serial.begin(9600);
   Serial.print(F("Hello! ST7735 TFT Test"));
 
-#if defined(ST7735_RST_PIN)	// reset like Adafruit does
-  Serial.println(F("Using hardware reset pin"));
-	FastPin<ST7735_RST_PIN>::setOutput();
-	FastPin<ST7735_RST_PIN>::hi();
-	FastPin<ST7735_RST_PIN>::lo();
-	delay(1);
-	FastPin<ST7735_RST_PIN>::hi();
-#endif
+  #if defined(ST7735_RST_PIN)	// reset like Adafruit does
+    Serial.println(F("Using hardware reset pin"));
+    FastPin<ST7735_RST_PIN>::setOutput();
+    FastPin<ST7735_RST_PIN>::hi();
+    FastPin<ST7735_RST_PIN>::lo();
+    delay(1);
+    FastPin<ST7735_RST_PIN>::hi();
+  #endif
 
   tft.begin();  
 
@@ -55,6 +82,76 @@ void loop() {
     drawRPMGaugeCanvas(revs,6000,5500);
     revs+=10;
   } while (revs < 6250);
+}
+
+void drawPage(gaugeConfig[] gauges, int length) {
+  for (int i=0; i < length; i++) {
+    drawGauge(gauges[i]);
+  }
+  thisDraw = millis();
+  int drawTime = thisDraw - lastDraw;
+  lastDraw = thisDraw;
+  if (printFPS) {
+    tft.setCursor(0,0);
+    tft.setTextColor(ST7735_WHITE,ST7735_BLACK);
+    tft.setTextSize(1);
+    tft.setTextWrap(false);
+    tft.print(F("FPS: "));
+    //lastDraw - thisDraw = draw interval in ms
+    //fps is draws per second, or draws per 1000 ms
+    tft.setTextColor(ST7735_MAGENTA,ST7735_BLACK);
+    tft.print(1000/drawTime);
+    tft.print(F("."));
+    tft.print((10000/drawTime)%10);
+  }
+}
+
+void drawGauge(gaugeConfig gauge) {
+  if(gauge.needsSetup) {
+    //blank the gauge area
+    tft.fillRect(gauge.originX,gauge.originY,gauge.width,gauge.height,ST7735_BLACK);
+    //draw the outline boxes of the gauge bar
+    if (gauge.isVert) {
+      gauge.gfxHeight = gauge.height-(2*padding);
+      gauge.gfxWidth = meterWidth;
+    }
+    else {
+      gauge.gfxHeight = meterWidth;
+      gauge.gfxWidth = gauge.width-(2*padding);
+    }
+    tft.drawRect(gauge.originX+padding,gauge.originY+padding,gauge.gfxWidth,gauge.gfxHeight,ST7735_WHITE);
+    //draw the gauge label centered at the top
+    //label width = sizeof(gauge.label)
+    tft.setCursor(gauge.originX+(gauge.width/2)-(sizeof(gauge.label)*3),gauge.originY+2);
+    tft.setTextColor(ST7735_WHITE,ST7735_BLACK);
+    tft.setTextSize(1);
+    tft.setTextWrap(false);
+    tft.print(gauge.label);
+    //TODO: draw the gauge limits at the ends of he gauge
+  }
+  //long map(value, fromLow, fromHigh, toLow, toHigh)
+  //draw the meter itself on a canvas
+  /*
+  0,0                   ||  gauge.max
+                        ||
+                        ||
+                        ||  value
+                        ||
+                        ||
+                        ||
+  canvas.height,0       ||  gauge.min
+
+  
+  
+  */
+  if (gauge.isVert) {
+    small_vert_canvas.fillScreen(0);
+    small_vert_canvas.fillRect(0,map(gauge.value,gauge.min,gauge.max,small_vert_canvas.height,0),small_vert_canvas.width,small_vert_canvas.height)
+  }
+  //paste the canvas on the gauge area
+
+  //draw the number on the gauge
+
 }
 
 void drawRPMGaugeCanvas(int rpm, int maxrpm, int redline) {
@@ -98,11 +195,6 @@ int i_sin(int x) {
   boolean pos = true;  // positive - keeps an eye on the sign.
   uint8_t idx;
    //remove next 6 lines for fastestl!
-/*     if (x < 0) {
-       x = -x;
-       pos = !pos;  
-     }  
-    if (x >= 360) x %= 360;   */ 
   if (x > 180) 
   {
     idx = x - 180;

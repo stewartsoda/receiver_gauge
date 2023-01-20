@@ -35,16 +35,18 @@ drawGauge()
     Exits
 
 How to hold the page layout?
-    
+setupPage()
+    sets up the list of gaugeConfigs
     
 
 
-gaugeConfig
+gaugeConfig - struct
     Needs to hold data about
     byte[2] origin - Origin (upper left) coordinate: origin[0] = x,  origin[1] = y
     byte[2] dimensions - Dimensions of the gauge: dimensions[0] = width, dimensions[1] = height
-    bool vert - is the gauge vertical, or horizontal
-    char[] label - label of gauge
-    int[3] limits - limits of gauge: limits[0] = min, limits[1] = warn, limits[2] = max
-    int value - current value of gauge
+    bool vert - The gauge is vertical, else horoizontal
+    bool needsSetup - The gauge need to be completely drawn, else just updated?
+    char[] label - Label of gauge
+    int[3] limits - Limits of gauge: limits[0] = min, limits[1] = warn, limits[2] = max
+    int value - Current value of gauge
 
