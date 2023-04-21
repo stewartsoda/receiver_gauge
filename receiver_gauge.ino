@@ -58,30 +58,11 @@ const int wideGaugeHeight = 40;
 
 void setup(void) {
   Serial.begin(9600);
-  Serial.print(F("Hello! ST7735 TFT Test"));
-
-  #if defined(ST7735_RST_PIN)	// reset like Adafruit does
-    Serial.println(F("Using hardware reset pin"));
-    FastPin<ST7735_RST_PIN>::setOutput();
-    FastPin<ST7735_RST_PIN>::hi();
-    FastPin<ST7735_RST_PIN>::lo();
-    delay(1);
-    FastPin<ST7735_RST_PIN>::hi();
-  #endif
-
-  tft.begin();  
-
-  tft.fillScreen(ST7735_BLACK);
 
 }
 
 void loop() {
 
-  int revs = 0;
-  do {
-    drawRPMGaugeCanvas(revs,6000,5500);
-    revs+=10;
-  } while (revs < 6250);
 }
 
 void drawPage(gaugeConfig[] gauges, int length) {
