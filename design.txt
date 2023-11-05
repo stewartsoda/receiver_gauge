@@ -50,3 +50,7 @@ gaugeConfig - struct
     int[3] limits - Limits of gauge: limits[0] = min, limits[1] = warn, limits[2] = max
     int value - Current value of gauge
 
+TFT_eSPI benchmarks:
+fillScreen() takes 16-17 fps
+
+See https://www.howardinstruments.com.au/page/porsche-dials/ for example gauge faces

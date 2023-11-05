@@ -1,48 +1,100 @@
-#include <TFT_eSPI.h>
-#include <SPI.h>
+#include <TouchScreen.h>
 
-#define TDELAY 500
+#include "User_Setup.h"
+#include <TFT_eSPI.h>     // Hardware-specific library
+#include <TFT_eWidget.h>  // Widget library
+
+#include <SPI.h>
+#include <FS.h>
+#include <SD.h>
+
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 480
+
+#define GAUGES 1
+#define GRAPH 2
+
+#define DISPLAY_SPLASH
+
+#define SIMULATE_COMMS  // comment this out if you don't want simulated comms
+
+uint8_t data[128];  // data buffer for data from Speeduino
+
+#ifdef DISPLAY_SPLASH
+// add a bitmap here stored in PROGMEM
+#endif
 
 TFT_eSPI tft = TFT_eSPI(); 
+
+
+unsigned long start,finish;
 
 void setup() {
   Serial.begin(115200);
 
   tft.init();
   tft.fillScreen(0xF81F);
+
+  #ifdef DISPLAY_SPLASH
+  //display the splash screen
+  #endif
+
+
 }
 
+
 void loop() {
-  
-  uint32_t data = 0;
-  data = tft.readcommand32(0x04); // read display ID info
-  Serial.print("Display ID info (0x04): ");Serial.println(data,HEX);
 
-  data = tft.readcommand16(0x52); // read display brightness
-  Serial.print("Display brightness (0x52): ");Serial.println(data,HEX);
+  getData();
 
-  data = tft.readcommand16(0x54); // read CTRL display value
-  Serial.print("Display CTRL Display value (0x54): ");Serial.println(data,HEX);
+  compositeData();
 
-  data = tft.readcommand16(0x56); // read CABC value
-  Serial.print("Display CABC value (0x56): ");Serial.println(data,HEX);
+  drawScreen();
 
-  data = tft.readcommand16(0x5F); // read CABC minimum brightness value
-  Serial.print("Display CABC minimum brightness value (0x5F): ");Serial.println(data,HEX);
+  logData();
 
-  delay(5000);
+}
 
-  tft.writecommand(0x53);
-  tft.writedata(0x2c);
 
-  uint8_t loop = 0;
+void compositeData() {
+  start = millis();
 
-  for (uint8_t i=0; i<255; i++) {
-    tft.writecommand(0x51);
-    tft.writedata(i);
-    delay(20);
-      data = tft.readcommand16(0x52); // read display brightness
-      Serial.print("Display brightness (0x52): ");Serial.println(data,HEX);
+  finish = millis();
+  Serial.print("drawScreen routine took ");
+  Serial.print(finish-start);
+  Serial.print(" ms.\n");
+}
+
+void drawScreen() {
+  start = millis();
+
+  if (currentScreen == GAUGES) {
 
   }
+  else if (currentScreen == GRAPH) {
+
+  }
+
+
+  finish = millis();
+  Serial.print("drawScreen routine took ");
+  Serial.print(finish-start);
+  Serial.print(" ms.\n");
+}
+
+void getData() {
+  start = millis();
+  #ifdef SIMULATE_COMMS
+    // simulate requesting and receiving data here
+  #else 
+    // do real data exchange here
+  #endif
+  finish = millis();
+  Serial.print("getData routine took ");
+  Serial.print(finish-start);
+  Serial.print(" ms.\n");
+}
+
+void logData() {
+
 }
