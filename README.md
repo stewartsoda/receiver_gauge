@@ -4,7 +4,7 @@
 - A large, 320x480 TFT display using an ILI9488 LCD controller
 - Touchscreen support
 - Multiple display modes:
-    - Display of critical engine information via realtime meters
+    - Display of critical engine information via realtime dials/meters
     - Realtime graphing of engine parameters for tuning
 - A serial interface to a Speeduino ECU
 - An SD datalogger
@@ -19,6 +19,10 @@ The data protocol used is described at https://wiki.speeduino.com/en/reference/I
 There is an option to use USB which looks interesting.
 
 ### Display
+The display will have a number of modes:
+- A "Gauge" mode, where realtime data is displayed on a number of dials/gauges
+- A "Graph" mode, where realtime parameters are plotted on a graph vs. time
+- A "Debug" mode, where realtime information is displayed on the screen via text
 
 #### Touchscreen support
 
